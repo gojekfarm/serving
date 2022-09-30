@@ -50,6 +50,10 @@ func (c *Reconciler) checkAndUpdateDeployment(ctx context.Context, rev *v1.Revis
 	logger := logging.FromContext(ctx)
 	cfgs := config.FromContext(ctx)
 
+	logger.Info("\n---- SEE REV STATUS ----==========\n")
+	logger.Info("***", rev.Status)
+	logger.Info("\n----=====================================----==========\n")
+
 	deployment, err := resources.MakeDeployment(rev, cfgs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update deployment: %w", err)

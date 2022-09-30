@@ -21,6 +21,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"knative.dev/pkg/apis"
@@ -181,6 +182,27 @@ func (rs *RevisionStatus) PropagateAutoscalerStatus(ps *autoscalingv1alpha1.PodA
 	if ps.DesiredScale != nil && *ps.DesiredScale >= 0 {
 		rs.DesiredReplicas = ps.DesiredScale
 	}
+
+	// TODO: Sync with pkg/apis/autoscaling/v1alpha1/pa_types.go changes
+	// rs.ResourceRecommendations = nil
+	// if ps.ResourceRecommendations != nil {}
+	userContainerCPU := resource.MustParse("500m")
+	userContainerMemory := resource.MustParse("1G")
+
+	queueProxyCPU := resource.MustParse("25m")
+	rs.ResourceRecommendations = []ResourceRecommendation{
+		{
+			ContainerName: "user-container",
+			CPU:           &userContainerCPU,
+			Memory:        &userContainerMemory,
+		},
+		{
+			ContainerName: "queue-proxy",
+			CPU:           &queueProxyCPU,
+		},
+	}
+	fmt.Println("============================== CASE PropagateAutoscalerStatus FINAL ==============================")
+	fmt.Println(rs.ResourceRecommendations)
 
 	if cond == nil {
 		rs.MarkActiveUnknown("Deploying", "")
