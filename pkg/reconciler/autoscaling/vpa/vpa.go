@@ -41,7 +41,7 @@ import (
 type Reconciler struct {
 	*areconciler.Base
 
-	vpaClient kubernetes.Interface // vpa.New(c.kubeClient.AutoscalingV2beta2().RESTClient())
+	vpaClient kubernetes.Interface
 	vpaLister v1.VerticalPodAutoscalerLister
 }
 
