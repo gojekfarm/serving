@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	// The set of controllers this controller process runs.
 	"knative.dev/serving/pkg/reconciler/autoscaling/vpa"
 
 	// This defines the shared main for injected controllers.

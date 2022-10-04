@@ -226,10 +226,10 @@ const (
 var (
 	ClassAnnotation = kmap.KeyPriority{
 		ClassAnnotationKey,
-	},
-	VPAAnnotationKey = kmap.KeyPriority{
+	}
+	VPAAnnotation = kmap.KeyPriority{
 		VPAAnnotationKey,
-	},
+	}
 	InitialScaleAnnotation = kmap.KeyPriority{
 		InitialScaleAnnotationKey,
 		GroupName + "/initialScale",

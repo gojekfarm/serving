@@ -31,6 +31,8 @@ import (
 
 // MakeVPA creates an VPA resource from a PA resource.
 func MakeVPA(pa *autoscalingv1alpha1.PodAutoscaler, config *autoscalerconfig.Config) *vpa.VerticalPodAutoscaler {
+	containerScalingModeAuto, containerScalingModeOff := vpa.ContainerScalingModeAuto, vpa.ContainerScalingModeOff
+	updateModeOff := vpa.UpdateModeOff
 	return &vpa.VerticalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            pa.Name,
@@ -40,21 +42,21 @@ func MakeVPA(pa *autoscalingv1alpha1.PodAutoscaler, config *autoscalerconfig.Con
 			OwnerReferences: []metav1.OwnerReference{*kmeta.NewControllerRef(pa)},
 		},
 		Spec: vpa.VerticalPodAutoscalerSpec{
-			TargetRef: autoscalingv1.CrossVersionObjectReference{
+			TargetRef: &autoscalingv1.CrossVersionObjectReference{
 				APIVersion: pa.Spec.ScaleTargetRef.APIVersion,
 				Kind:       pa.Spec.ScaleTargetRef.Kind,
 				Name:       pa.Spec.ScaleTargetRef.Name,
 			},
-			UpdatePolicy: vpa.PodUpdatePolicy{
-				UpdateMode: vpa.UpdateModeOff,
+			UpdatePolicy: &vpa.PodUpdatePolicy{
+				UpdateMode: &updateModeOff,
 			},
 			// TODO_HACK: Allow configure limits via annotations
-			ResourcePolicy: vpa.PodResourcePolicy{
+			ResourcePolicy: &vpa.PodResourcePolicy{
 				ContainerPolicies: []vpa.ContainerResourcePolicy{
 					vpa.ContainerResourcePolicy{
 						// TODO_HACK: Get actual container name
 						ContainerName: "user-container",
-						Mode:          vpa.ContainerScalingModeOn,
+						Mode:          &containerScalingModeAuto,
 						MaxAllowed: corev1.ResourceList{
 							corev1.ResourceName("cpu"):    resource.MustParse("4"),
 							corev1.ResourceName("memory"): resource.MustParse("5Gi"),
@@ -63,7 +65,7 @@ func MakeVPA(pa *autoscalingv1alpha1.PodAutoscaler, config *autoscalerconfig.Con
 					vpa.ContainerResourcePolicy{
 						// TODO_HACK: Get actual container name
 						ContainerName: "queue-proxy",
-						Mode:          vpa.ContainerScalingModeOff,
+						Mode:          &containerScalingModeOff,
 						MaxAllowed: corev1.ResourceList{
 							corev1.ResourceName("cpu"):    resource.MustParse("4"),
 							corev1.ResourceName("memory"): resource.MustParse("5Gi"),

@@ -25,8 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	typesv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	vpav1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/client/clientset/versioned"
 	v1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/client/listers/autoscaling.k8s.io/v1"
-	"k8s.io/client-go/kubernetes"
 	"knative.dev/pkg/logging"
 	pkgreconciler "knative.dev/pkg/reconciler"
 	"knative.dev/serving/pkg/apis/autoscaling/v1alpha1"
@@ -41,7 +42,7 @@ import (
 type Reconciler struct {
 	*areconciler.Base
 
-	vpaClient kubernetes.Interface
+	vpaClient *vpav1.Clientset
 	vpaLister v1.VerticalPodAutoscalerLister
 }
 
@@ -82,19 +83,20 @@ func (c *Reconciler) ReconcileKind(ctx context.Context, pa *autoscalingv1alpha1.
 	}
 
 	// Set recommended resources
-	if vpa.Status != nil && len(vpa.Status.Recommendation.Conditions) > 0 && vpa.Status.Recommendation != nil {
-		condition := vpa.Status.Recommendation.Conditions[0]
+	if len(vpa.Status.Conditions) > 0 && vpa.Status.Recommendation != nil {
+		condition := vpa.Status.Conditions[0]
 		newRecommendations := []v1alpha1.ResourceRecommendation{}
-		if condition.Type == v1.RecommendationProvided && condition.Status == corev1.ConditionTrue {
-			for item, _ := range vpa.Status.Recommendation.ContainerRecommendations {
+		if condition.Type == typesv1.RecommendationProvided && condition.Status == corev1.ConditionTrue {
+			for _, item := range vpa.Status.Recommendation.ContainerRecommendations {
+				cpuRecommendation, memoryRecommendation := item.Target[corev1.ResourceCPU], item.Target[corev1.ResourceMemory]
 				newRecommendations = append(newRecommendations, v1alpha1.ResourceRecommendation{
 					ContainerName: item.ContainerName,
-					CPU:           item.Target.CPU,
-					Memory:        item.Target.Memory,
+					CPU:           &cpuRecommendation,
+					Memory:        &memoryRecommendation,
 				})
 			}
 		}
-		pa.ResourceRecommendations = newRecommendations
+		pa.Status.ResourceRecommendations = newRecommendations
 	}
 	return nil
 }

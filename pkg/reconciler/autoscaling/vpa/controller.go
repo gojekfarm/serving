@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package hpa
+package vpa
 
 import (
 	"context"
@@ -51,8 +51,8 @@ func NewController(
 	logger := logging.FromContext(ctx)
 	paInformer := painformer.Get(ctx)
 
-	cfg := injection.ParseAndGetRESTConfigOrDie()
-	vpaClient := vpa.NewForConfigOrDie(cfg).AutoscalingV1Interface()
+	cfg := injection.GetConfig(ctx)
+	vpaClient := vpa.NewForConfigOrDie(cfg)
 	vpaInformerFactory := vpainformers.NewSharedInformerFactory(vpaClient, time.Second*30)
 	vpaInformer := vpaInformerFactory.Autoscaling().V1().VerticalPodAutoscalers()
 
