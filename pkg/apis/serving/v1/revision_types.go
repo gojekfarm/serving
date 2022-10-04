@@ -18,6 +18,7 @@ package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
@@ -119,6 +120,17 @@ func IsRevisionCondition(t apis.ConditionType) bool {
 	return false
 }
 
+// ResourceRecommendation is used to capture the CPU and memory recommendation from the VPA
+type ResourceRecommendation struct {
+	ContainerName string `json:"containerName,omitempty"`
+
+	// CPU shows the current recommended CPU request for each pod.
+	CPU *resource.Quantity `json:"desiredCPU,omitempty"`
+
+	// Memory shows the current recommended Memory request for each pod.
+	Memory *resource.Quantity `json:"desiredMemory,omitempty"`
+}
+
 // RevisionStatus communicates the observed state of the Revision (from the controller).
 type RevisionStatus struct {
 	duckv1.Status `json:",inline"`
@@ -152,6 +164,9 @@ type RevisionStatus struct {
 	// DesiredReplicas reflects the desired amount of pods running this revision.
 	// +optional
 	DesiredReplicas *int32 `json:"desiredReplicas,omitempty"`
+
+	// ResourceRecommendations are present if the VPA is enabled and has posted a recommendation
+	ResourceRecommendations []ResourceRecommendation `json:"resourceRecommendations,omitempty"`
 }
 
 // ContainerStatus holds the information of container name and image digest value
