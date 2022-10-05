@@ -69,11 +69,10 @@ func NewController(
 			Client:           servingclient.Get(ctx),
 			NetworkingClient: networkingclient.Get(ctx),
 		},
-
 		vpaClient: vpaClient,
 		vpaLister: vpaInformer.Lister(),
 	}
-	impl := pareconciler.NewImpl(ctx, c, autoscaling.VPA, func(impl *controller.Impl) controller.Options {
+	impl := pareconciler.NewImpl(ctx, c, autoscaling.KPA, func(impl *controller.Impl) controller.Options {
 		logger.Info("Setting up ConfigMap receivers")
 		configsToResync := []interface{}{
 			&autoscalerconfig.Config{},
