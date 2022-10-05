@@ -58,7 +58,7 @@ func NewController(
 
 	onlyVPAClass := func(obj interface{}) bool {
 		if mo, ok := obj.(metav1.Object); ok {
-			_, ok = mo.GetAnnotations()[autoscaling.VPAAnnotationKey]
+			_, ok := mo.GetAnnotations()[autoscaling.VPAAnnotationKey]
 			return ok
 		}
 		return false
@@ -70,7 +70,6 @@ func NewController(
 			NetworkingClient: networkingclient.Get(ctx),
 		},
 		vpaClient: vpaClient,
-		vpaLister: vpaInformer.Lister(),
 	}
 	impl := pareconciler.NewImpl(ctx, c, autoscaling.KPA, func(impl *controller.Impl) controller.Options {
 		logger.Info("Setting up ConfigMap receivers")

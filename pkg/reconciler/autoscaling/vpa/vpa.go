@@ -27,7 +27,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	typesv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	vpav1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/client/clientset/versioned"
-	v1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/client/listers/autoscaling.k8s.io/v1"
 	"knative.dev/pkg/logging"
 	pkgreconciler "knative.dev/pkg/reconciler"
 	"knative.dev/serving/pkg/apis/autoscaling/v1alpha1"
@@ -41,9 +40,7 @@ import (
 // Reconciler implements the control loop for the HPA resources.
 type Reconciler struct {
 	*areconciler.Base
-
 	vpaClient *vpav1.Clientset
-	vpaLister v1.VerticalPodAutoscalerLister
 }
 
 // Check that our Reconciler implements pareconciler.Interface
@@ -55,12 +52,12 @@ func (c *Reconciler) ReconcileKind(ctx context.Context, pa *autoscalingv1alpha1.
 	defer cancel()
 
 	logger := logging.FromContext(ctx)
-	logger.Debug("VPA exists")
+	logger.Debug("PA exists")
 
 	// VPA-class PA reads recommendations from the Kubernetes Vertical Pod Autoscaler and applies
 	// them to the deployment.
 	desiredVPA := resources.MakeVPA(pa, config.FromContext(ctx).Autoscaler)
-	vpa, err := c.vpaLister.VerticalPodAutoscalers(pa.Namespace).Get(desiredVPA.Name)
+	vpa, err := c.vpaClient.AutoscalingV1().VerticalPodAutoscalers(pa.Namespace).Get(ctx, desiredVPA.Name, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		logger.Infof("Creating VPA %q", desiredVPA.Name)
 		// VpaClientSet allows us to configure VPA objects

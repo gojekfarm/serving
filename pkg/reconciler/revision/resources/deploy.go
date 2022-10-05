@@ -206,8 +206,24 @@ func makeServingContainer(servingContainer corev1.Container, rev *v1.Revision) c
 // BuildPodSpec creates a PodSpec from the given revision and containers.
 // cfg can be passed as nil if not within revision reconciliation context.
 func BuildPodSpec(rev *v1.Revision, containers []corev1.Container, cfg *config.Config) *corev1.PodSpec {
+	containerSpecs := []corev1.Container{}
+	// Override the resource recommendations, if any
+	for _, container := range containers {
+		for _, rec := range rev.Status.ResourceRecommendations {
+			if rec.ContainerName == container.Name {
+				// TODO_HACK: Remove harcoded resource names
+				if rec.CPU != nil {
+					container.Resources.Requests["cpu"] = *rec.CPU
+				}
+				if rec.Memory != nil {
+					container.Resources.Requests["memory"] = *rec.Memory
+				}
+			}
+		}
+		containerSpecs = append(containerSpecs, container)
+	}
 	pod := rev.Spec.PodSpec.DeepCopy()
-	pod.Containers = containers
+	pod.Containers = containerSpecs
 	pod.TerminationGracePeriodSeconds = rev.Spec.TimeoutSeconds
 	if cfg != nil && pod.EnableServiceLinks == nil {
 		pod.EnableServiceLinks = cfg.Defaults.EnableServiceLinks
