@@ -129,6 +129,11 @@ type PodAutoscalerStatus struct {
 	// ActualScale shows the actual number of replicas for the revision.
 	ActualScale *int32 `json:"actualScale,omitempty"`
 
+	// ActualMetricPercent is a ratio of the current stable and panic requests
+	// to the total capacity that the deployment has, in terms of the KPA metric. It will
+	// be used by the VPA, if enabled, to make scaling decisions.
+	ActualMetricPercent *int32 `json:"actualMetricPercent,omitempty"`
+
 	// ResourceRecommendations are present if the VPA is enabled and has posted a recommendation
 	ResourceRecommendations []ResourceRecommendation `json:"resourceRecommendations,omitempty"`
 }

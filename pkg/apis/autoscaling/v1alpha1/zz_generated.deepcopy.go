@@ -212,6 +212,11 @@ func (in *PodAutoscalerStatus) DeepCopyInto(out *PodAutoscalerStatus) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.ActualMetricPercent != nil {
+		in, out := &in.ActualMetricPercent, &out.ActualMetricPercent
+		*out = new(int32)
+		**out = **in
+	}
 	if in.ResourceRecommendations != nil {
 		in, out := &in.ResourceRecommendations, &out.ResourceRecommendations
 		*out = make([]ResourceRecommendation, len(*in))

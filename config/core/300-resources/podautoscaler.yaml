@@ -49,6 +49,9 @@ spec:
         - name: ActualScale
           type: integer
           jsonPath: ".status.actualScale"
+        - name: ActualMetricPercent
+          type: integer
+          jsonPath: ".status.actualMetricPercent"
         - name: Ready
           type: string
           jsonPath: ".status.conditions[?(@.type=='Ready')].status"
@@ -105,6 +108,10 @@ spec:
                 - metricsServiceName
                 - serviceName
               properties:
+                actualMetricPercent:
+                  description: ActualMetricPercent is a ratio of the current stable and panic requests to the total capacity that the deployment has, in terms of the KPA metric. It will be used by the VPA, if enabled, to make scaling decisions.
+                  type: integer
+                  format: int32
                 actualScale:
                   description: ActualScale shows the actual number of replicas for the revision.
                   type: integer

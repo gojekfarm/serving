@@ -499,6 +499,19 @@ int32
 </tr>
 <tr>
 <td>
+<code>actualMetricPercent</code><br/>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>ActualMetricPercent is a ratio of the current stable and panic requests
+to the total capacity that the deployment has, in terms of the KPA metric. It will
+be used by the VPA, if enabled, to make scaling decisions.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>resourceRecommendations</code><br/>
 <em>
 <a href="#autoscaling.internal.knative.dev/v1alpha1.ResourceRecommendation">
@@ -1385,6 +1398,56 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="serving.knative.dev/v1.ResourceRecommendation">ResourceRecommendation
+</h3>
+<p>
+(<em>Appears on:</em><a href="#serving.knative.dev/v1.RevisionStatus">RevisionStatus</a>)
+</p>
+<div>
+<p>ResourceRecommendation is used to capture the CPU and memory recommendation from the VPA</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>containerName</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>desiredCPU</code><br/>
+<em>
+k8s.io/apimachinery/pkg/api/resource.Quantity
+</em>
+</td>
+<td>
+<p>CPU shows the current recommended CPU request for each pod.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>desiredMemory</code><br/>
+<em>
+k8s.io/apimachinery/pkg/api/resource.Quantity
+</em>
+</td>
+<td>
+<p>Memory shows the current recommended Memory request for each pod.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="serving.knative.dev/v1.RevisionSpec">RevisionSpec
 </h3>
 <p>
@@ -1551,6 +1614,32 @@ int32
 <td>
 <em>(Optional)</em>
 <p>DesiredReplicas reflects the desired amount of pods running this revision.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>actualMetricPercent</code><br/>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>ActualMetricPercent is a ratio of the current stable and panic requests
+to the total capacity that the deployment has, in terms of the KPA metric. It will
+be used by the VPA, if enabled, to make scaling decisions.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resourceRecommendations</code><br/>
+<em>
+<a href="#serving.knative.dev/v1.ResourceRecommendation">
+[]ResourceRecommendation
+</a>
+</em>
+</td>
+<td>
+<p>ResourceRecommendations are present if the VPA is enabled and has posted a recommendation</p>
 </td>
 </tr>
 </tbody>

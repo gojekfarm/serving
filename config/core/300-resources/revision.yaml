@@ -637,6 +637,10 @@ spec:
               description: RevisionStatus communicates the observed state of the Revision (from the controller).
               type: object
               properties:
+                actualMetricPercent:
+                  description: ActualMetricPercent is a ratio of the current stable and panic requests to the total capacity that the deployment has, in terms of the KPA metric. It will be used by the VPA, if enabled, to make scaling decisions.
+                  type: integer
+                  format: int32
                 actualReplicas:
                   description: ActualReplicas reflects the amount of ready pods running this revision.
                   type: integer
@@ -708,3 +712,26 @@ spec:
                   description: ObservedGeneration is the 'Generation' of the Service that was last processed by the controller.
                   type: integer
                   format: int64
+                resourceRecommendations:
+                  description: ResourceRecommendations are present if the VPA is enabled and has posted a recommendation
+                  type: array
+                  items:
+                    description: ResourceRecommendation is used to capture the CPU and memory recommendation from the VPA
+                    type: object
+                    properties:
+                      containerName:
+                        type: string
+                      desiredCPU:
+                        description: CPU shows the current recommended CPU request for each pod.
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        x-kubernetes-int-or-string: true
+                      desiredMemory:
+                        description: Memory shows the current recommended Memory request for each pod.
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        x-kubernetes-int-or-string: true
