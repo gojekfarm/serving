@@ -182,6 +182,12 @@ func (rs *RevisionStatus) PropagateAutoscalerStatus(ps *autoscalingv1alpha1.PodA
 		rs.DesiredReplicas = ps.DesiredScale
 	}
 
+	// Copy the KPA metric utilization percent
+	rs.ActualMetricPercent = nil
+	if ps.ActualMetricPercent != nil && *ps.ActualMetricPercent >= 0 {
+		rs.ActualMetricPercent = ps.ActualMetricPercent
+	}
+
 	// Copy the resource recommendations from the pod autoscaler
 	rs.ResourceRecommendations = []ResourceRecommendation{}
 	for _, item := range ps.ResourceRecommendations {

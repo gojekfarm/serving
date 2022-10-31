@@ -18,7 +18,6 @@ package resources
 
 import (
 	"fmt"
-	"math"
 	"path"
 	"strconv"
 
@@ -117,19 +116,19 @@ func createQueueResources(cfg *deployment.Config, annotations map[string]string,
 	var requestCPU, limitCPU, requestMemory, limitMemory resource.Quantity
 
 	if resourceFraction, ok := fractionFromPercentage(annotations, serving.QueueSidecarResourcePercentageAnnotation); ok {
-		if ok, requestCPU = computeResourceRequirements(userContainer.Resources.Requests.Cpu(), resourceFraction, queueContainerRequestCPU); ok {
+		if ok, requestCPU = computeResourceRequirements(userContainer.Resources.Requests.Cpu(), resourceFraction, &queueContainerRequestCPU); ok {
 			resourceRequests[corev1.ResourceCPU] = requestCPU
 		}
 
-		if ok, limitCPU = computeResourceRequirements(userContainer.Resources.Limits.Cpu(), resourceFraction, queueContainerLimitCPU); ok {
+		if ok, limitCPU = computeResourceRequirements(userContainer.Resources.Limits.Cpu(), resourceFraction, &queueContainerLimitCPU); ok {
 			resourceLimits[corev1.ResourceCPU] = limitCPU
 		}
 
-		if ok, requestMemory = computeResourceRequirements(userContainer.Resources.Requests.Memory(), resourceFraction, queueContainerRequestMemory); ok {
+		if ok, requestMemory = computeResourceRequirements(userContainer.Resources.Requests.Memory(), resourceFraction, &queueContainerRequestMemory); ok {
 			resourceRequests[corev1.ResourceMemory] = requestMemory
 		}
 
-		if ok, limitMemory = computeResourceRequirements(userContainer.Resources.Limits.Memory(), resourceFraction, queueContainerLimitMemory); ok {
+		if ok, limitMemory = computeResourceRequirements(userContainer.Resources.Limits.Memory(), resourceFraction, &queueContainerLimitMemory); ok {
 			resourceLimits[corev1.ResourceMemory] = limitMemory
 		}
 	}
@@ -142,30 +141,6 @@ func createQueueResources(cfg *deployment.Config, annotations map[string]string,
 	}
 
 	return resources
-}
-
-func computeResourceRequirements(resourceQuantity *resource.Quantity, fraction float64, boundary resourceBoundary) (bool, resource.Quantity) {
-	if resourceQuantity.IsZero() {
-		return false, resource.Quantity{}
-	}
-
-	// In case the resourceQuantity MilliValue overflows int64 we use MaxInt64
-	// https://github.com/kubernetes/apimachinery/blob/master/pkg/api/resource/quantity.go
-	scaledValue := resourceQuantity.Value()
-	scaledMilliValue := int64(math.MaxInt64 - 1)
-	if scaledValue < (math.MaxInt64 / 1000) {
-		scaledMilliValue = resourceQuantity.MilliValue()
-	}
-
-	// float64(math.MaxInt64) > math.MaxInt64, to avoid overflow
-	percentageValue := float64(scaledMilliValue) * fraction
-	newValue := int64(math.MaxInt64)
-	if percentageValue < math.MaxInt64 {
-		newValue = int64(percentageValue)
-	}
-
-	newquantity := boundary.applyBoundary(*resource.NewMilliQuantity(newValue, resource.BinarySI))
-	return true, newquantity
 }
 
 func fractionFromPercentage(m map[string]string, key kmap.KeyPriority) (float64, bool) {
