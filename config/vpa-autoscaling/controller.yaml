@@ -18,10 +18,10 @@ metadata:
   name: autoscaler-vpa
   namespace: knative-serving
   labels:
+    autoscaling.knative.dev/autoscaler-provider: vpa
     app.kubernetes.io/component: autoscaler-vpa
     app.kubernetes.io/name: knative-serving
     app.kubernetes.io/version: devel
-    serving.knative.dev/release: devel
 spec:
   selector:
     matchLabels:
@@ -35,7 +35,6 @@ spec:
         app.kubernetes.io/component: autoscaler-vpa
         app.kubernetes.io/name: knative-serving
         app.kubernetes.io/version: devel
-        serving.knative.dev/release: devel
     spec:
       # To avoid node becoming SPOF, spread our replicas to different nodes.
       affinity:
@@ -97,10 +96,10 @@ kind: Service
 metadata:
   labels:
     app: autoscaler-vpa
+    autoscaling.knative.dev/autoscaler-provider: vpa
     app.kubernetes.io/component: autoscaler-vpa
     app.kubernetes.io/name: knative-serving
     app.kubernetes.io/version: devel
-    serving.knative.dev/release: devel
   name: autoscaler-vpa
   namespace: knative-serving
 spec:

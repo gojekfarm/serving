@@ -53,6 +53,7 @@ readonly SERVING_CORE_YAML=${YAML_OUTPUT_DIR}/serving-core.yaml
 readonly SERVING_DEFAULT_DOMAIN_YAML=${YAML_OUTPUT_DIR}/serving-default-domain.yaml
 readonly SERVING_STORAGE_VERSION_MIGRATE_YAML=${YAML_OUTPUT_DIR}/serving-storage-version-migration.yaml
 readonly SERVING_HPA_YAML=${YAML_OUTPUT_DIR}/serving-hpa.yaml
+readonly SERVING_VPA_YAML=${YAML_OUTPUT_DIR}/serving-vpa.yaml
 readonly SERVING_CRD_YAML=${YAML_OUTPUT_DIR}/serving-crds.yaml
 readonly SERVING_POST_INSTALL_JOBS_YAML=${YAML_OUTPUT_DIR}/serving-post-install-jobs.yaml
 
@@ -97,6 +98,9 @@ ko resolve ${KO_YAML_FLAGS} -f config/core/300-resources/ -f config/core/300-ima
 # Create hpa-class autoscaling related yaml
 ko resolve ${KO_YAML_FLAGS} -f config/hpa-autoscaling/ | "${LABEL_YAML_CMD[@]}" > "${SERVING_HPA_YAML}"
 
+# Create vpa-class autoscaling related yaml
+ko resolve ${KO_YAML_FLAGS} -f config/vpa-autoscaling/ | "${LABEL_YAML_CMD[@]}" > "${SERVING_VPA_YAML}"
+
 # By putting the list of files used to create serving-upgrade.yaml
 # people can choose to exclude certain ones via 'grep' but still keep in-sync
 # with the complete list if things change in the future
@@ -120,6 +124,7 @@ ${SERVING_DEFAULT_DOMAIN_YAML}
 ${SERVING_STORAGE_VERSION_MIGRATE_YAML}
 ${SERVING_POST_INSTALL_JOBS_YAML}
 ${SERVING_HPA_YAML}
+${SERVING_VPA_YAML}
 ${SERVING_CRD_YAML}
 EOF
 
@@ -129,5 +134,6 @@ export SERVING_DEFAULT_DOMAIN_YAML=${SERVING_DEFAULT_DOMAIN_YAML}
 export SERVING_STORAGE_VERSION_MIGRATE_YAML=${SERVING_STORAGE_VERSION_MIGRATE_YAML}
 export SERVING_POST_INSTALL_JOBS_YAML=${SERVING_POST_INSTALL_JOBS_YAML}
 export SERVING_HPA_YAML=${SERVING_HPA_YAML}
+export SERVING_VPA_YAML=${SERVING_VPA_YAML}
 export SERVING_CRD_YAML=${SERVING_CRD_YAML}
 EOF
