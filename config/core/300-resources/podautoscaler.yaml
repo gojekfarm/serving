@@ -48,6 +48,9 @@ spec:
         - name: ActualScale
           type: integer
           jsonPath: ".status.actualScale"
+        - name: ActualMetricPercent
+          type: integer
+          jsonPath: ".status.actualMetricPercent"
         - name: Ready
           type: string
           jsonPath: ".status.conditions[?(@.type=='Ready')].status"
@@ -105,6 +108,10 @@ spec:
                 - metricsServiceName
                 - serviceName
               properties:
+                actualMetricPercent:
+                  description: ActualMetricPercent is a ratio of the current stable and panic requests to the total capacity that the deployment has, in terms of the KPA metric. It will be used by the VPA, if enabled, to make scaling decisions.
+                  type: integer
+                  format: int32
                 actualScale:
                   description: ActualScale shows the actual number of replicas for the revision.
                   type: integer
@@ -153,6 +160,29 @@ spec:
                   description: ObservedGeneration is the 'Generation' of the Service that was last processed by the controller.
                   type: integer
                   format: int64
+                resourceRecommendations:
+                  description: ResourceRecommendations are present if the VPA is enabled and has posted a recommendation
+                  type: array
+                  items:
+                    description: ResourceRecommendation is used to capture the CPU and memory recommendation from the VPA
+                    type: object
+                    properties:
+                      containerName:
+                        type: string
+                      desiredCPU:
+                        description: CPU shows the current recommended CPU request for each pod.
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        x-kubernetes-int-or-string: true
+                      desiredMemory:
+                        description: Memory shows the current recommended Memory request for each pod.
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        x-kubernetes-int-or-string: true
                 serviceName:
                   description: ServiceName is the K8s Service name that serves the revision, scaled by this PA. The service is created and owned by the ServerlessService object owned by this PA.
                   type: string

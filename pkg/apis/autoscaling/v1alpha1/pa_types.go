@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	net "knative.dev/networking/pkg/apis/networking"
 	"knative.dev/pkg/apis"
@@ -127,6 +128,14 @@ type PodAutoscalerStatus struct {
 
 	// ActualScale shows the actual number of replicas for the revision.
 	ActualScale *int32 `json:"actualScale,omitempty"`
+
+	// ActualMetricPercent is a ratio of the current stable and panic requests
+	// to the total capacity that the deployment has, in terms of the KPA metric. It will
+	// be used by the VPA, if enabled, to make scaling decisions.
+	ActualMetricPercent *int32 `json:"actualMetricPercent,omitempty"`
+
+	// ResourceRecommendations are present if the VPA is enabled and has posted a recommendation
+	ResourceRecommendations []ResourceRecommendation `json:"resourceRecommendations,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -137,6 +146,17 @@ type PodAutoscalerList struct {
 	metav1.ListMeta `json:"metadata"`
 
 	Items []PodAutoscaler `json:"items"`
+}
+
+// ResourceRecommendation is used to capture the CPU and memory recommendation from the VPA
+type ResourceRecommendation struct {
+	ContainerName string `json:"containerName,omitempty"`
+
+	// CPU shows the current recommended CPU request for each pod.
+	CPU *resource.Quantity `json:"desiredCPU,omitempty"`
+
+	// Memory shows the current recommended Memory request for each pod.
+	Memory *resource.Quantity `json:"desiredMemory,omitempty"`
 }
 
 // GetStatus retrieves the status of the PodAutoscaler. Implements the KRShaped interface.

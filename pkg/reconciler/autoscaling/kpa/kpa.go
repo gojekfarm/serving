@@ -164,7 +164,10 @@ func (c *Reconciler) ReconcileKind(ctx context.Context, pa *autoscalingv1alpha1.
 		return fmt.Errorf("error reconciling SKS: %w", err)
 	}
 	// Propagate service name.
+	// Propagate service name and metric utilization.
 	pa.Status.ServiceName = sks.Status.ServiceName
+	pa.Status.ActualMetricPercent = ptr.Int32(decider.Status.ActualMetricPercent)
+	logger.Debugf("ActualMetricPercent: %d", *pa.Status.ActualMetricPercent)
 
 	// If SKS is not ready — ensure we're not becoming ready.
 	if sks.IsReady() {

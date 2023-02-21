@@ -86,6 +86,11 @@ type DeciderSpec struct {
 
 // DeciderStatus is the current scale recommendation.
 type DeciderStatus struct {
+	// ActualMetricPercent is a ratio of the current stable and panic requests
+	// to the total capacity that the deployment has, in terms of the KPA metric. It will
+	// be used by the VPA, if enabled, to make scaling decisions.
+	ActualMetricPercent int32
+
 	// DesiredScale is the target number of instances that autoscaler
 	// this revision needs.
 	DesiredScale int32
@@ -100,6 +105,10 @@ type DeciderStatus struct {
 
 // ScaleResult holds the scale result of the UniScaler evaluation cycle.
 type ScaleResult struct {
+	// ActualMetricPercent is a ratio of the current stable and panic requests
+	// to the total capacity that the deployment has, in terms of the KPA metric. It will
+	// be used by the VPA, if enabled, to make scaling decisions.
+	ActualMetricPercent int32
 	// DesiredPodCount is the number of pods Autoscaler suggests for the revision.
 	DesiredPodCount int32
 	// ExcessBurstCapacity is computed headroom of the revision taking into
@@ -168,6 +177,7 @@ func (sr *scalerRunner) updateLatestScale(sRes ScaleResult) bool {
 	ret = ret || !sameSign(sr.decider.Status.ExcessBurstCapacity, sRes.ExcessBurstCapacity)
 
 	// Update with the latest calculation anyway.
+	sr.decider.Status.ActualMetricPercent = sRes.ActualMetricPercent
 	sr.decider.Status.ExcessBurstCapacity = sRes.ExcessBurstCapacity
 	return ret
 }
