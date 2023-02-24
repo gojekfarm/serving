@@ -18,6 +18,7 @@ package resources
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -35,6 +36,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -261,8 +263,34 @@ func makeServingContainer(servingContainer corev1.Container, rev *v1.Revision) c
 // BuildPodSpec creates a PodSpec from the given revision and containers.
 // cfg can be passed as nil if not within revision reconciliation context.
 func BuildPodSpec(rev *v1.Revision, containers []corev1.Container, cfg *config.Config) *corev1.PodSpec {
+	containerSpecs := []corev1.Container{}
+	// Override the resource recommendations, if any
+	if rev.Status.ActualMetricPercent != nil && *rev.Status.ActualMetricPercent > 0 {
+		fraction := 100.0 / float64(*rev.Status.ActualMetricPercent)
+		for _, container := range containers {
+			for _, rec := range rev.Status.ResourceRecommendations {
+				if rec.ContainerName == container.Name {
+					// TODO_HACK: Remove hardcoded resource names
+					if rec.CPU != nil {
+						if ok, newQty := computeResourceRequirements(rec.CPU, fraction, nil); ok {
+							container.Resources.Requests["cpu"] = newQty
+						}
+					}
+					if rec.Memory != nil {
+						if ok, newQty := computeResourceRequirements(rec.Memory, fraction, nil); ok {
+							container.Resources.Requests["memory"] = newQty
+						}
+					}
+				}
+			}
+			containerSpecs = append(containerSpecs, container)
+		}
+	} else {
+		containerSpecs = containers
+	}
+
 	pod := rev.Spec.PodSpec.DeepCopy()
-	pod.Containers = containers
+	pod.Containers = containerSpecs
 	pod.TerminationGracePeriodSeconds = rev.Spec.TimeoutSeconds
 	if cfg != nil && pod.EnableServiceLinks == nil {
 		pod.EnableServiceLinks = cfg.Defaults.EnableServiceLinks
@@ -367,4 +395,31 @@ func MakeDeployment(rev *v1.Revision, cfg *config.Config) (*appsv1.Deployment, e
 			},
 		},
 	}, nil
+}
+
+func computeResourceRequirements(resourceQuantity *resource.Quantity, fraction float64, boundary *resourceBoundary) (bool, resource.Quantity) {
+	if resourceQuantity.IsZero() {
+		return false, resource.Quantity{}
+	}
+
+	// In case the resourceQuantity MilliValue overflows int64 we use MaxInt64
+	// https://github.com/kubernetes/apimachinery/blob/master/pkg/api/resource/quantity.go
+	scaledValue := resourceQuantity.Value()
+	scaledMilliValue := int64(math.MaxInt64 - 1)
+	if scaledValue < (math.MaxInt64 / 1000) {
+		scaledMilliValue = resourceQuantity.MilliValue()
+	}
+
+	// float64(math.MaxInt64) > math.MaxInt64, to avoid overflow
+	percentageValue := float64(scaledMilliValue) * fraction
+	newValue := int64(math.MaxInt64)
+	if percentageValue < math.MaxInt64 {
+		newValue = int64(percentageValue)
+	}
+	newquantity := resource.NewMilliQuantity(newValue, resource.BinarySI)
+	if boundary != nil {
+		newBoundedQuantity := boundary.applyBoundary(*newquantity)
+		newquantity = &newBoundedQuantity
+	}
+	return true, *newquantity
 }

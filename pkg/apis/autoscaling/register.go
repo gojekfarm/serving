@@ -41,6 +41,11 @@ const (
 	// HPA is Kubernetes Horizontal Pod Autoscaler
 	HPA = "hpa.autoscaling.knative.dev"
 
+	// VPAAnnotationKey when set, enables the VPA for the deployment
+	VPAAnnotationKey = GroupName + "/vpa"
+	// VPA is the Kubernetes Vertical Pod Autoscaler
+	VPA = "vpa"
+
 	// MinScaleAnnotationKey is the annotation to specify the minimum number of Pods
 	// the PodAutoscaler should provision. For example,
 	//   autoscaling.knative.dev/min-scale: "1"
@@ -228,6 +233,9 @@ const (
 var (
 	ClassAnnotation = kmap.KeyPriority{
 		ClassAnnotationKey,
+	}
+	VPAAnnotation = kmap.KeyPriority{
+		VPAAnnotationKey,
 	}
 	InitialScaleAnnotation = kmap.KeyPriority{
 		InitialScaleAnnotationKey,

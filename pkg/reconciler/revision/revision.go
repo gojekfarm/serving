@@ -146,9 +146,9 @@ func (c *Reconciler) ReconcileKind(ctx context.Context, rev *v1.Revision) pkgrec
 	}
 
 	for _, phase := range []func(context.Context, *v1.Revision) error{
+		c.reconcilePA,
 		c.reconcileDeployment,
 		c.reconcileImageCache,
-		c.reconcilePA,
 	} {
 		if err := phase(ctx, rev); err != nil {
 			return err

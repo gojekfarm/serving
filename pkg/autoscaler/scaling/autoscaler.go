@@ -184,14 +184,20 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 		maxScaleDown = math.Floor(readyPodsCount / spec.MaxScaleDownRate)
 	}
 
+	// This is the utilization ratio of the current deployment, based on the observed metrics against
+	// its total capacity.
+	actualMetricPercent := (observedStableValue + observedPanicValue) / (spec.TotalValue * readyPodsCount) * 100
+
 	dspc := math.Ceil(observedStableValue / spec.TargetValue)
 	dppc := math.Ceil(observedPanicValue / spec.TargetValue)
 	if debugEnabled {
 		desugared.Debug(
-			fmt.Sprintf("For metric %s observed values: stable = %0.3f; panic = %0.3f; target = %0.3f "+
-				"Desired StablePodCount = %0.0f, PanicPodCount = %0.0f, ReadyEndpointCount = %d, MaxScaleUp = %0.0f, MaxScaleDown = %0.0f",
-				metricName, observedStableValue, observedPanicValue, spec.TargetValue,
-				dspc, dppc, originalReadyPodsCount, maxScaleUp, maxScaleDown))
+			fmt.Sprintf("For metric %s observed values: stable = %0.3f; panic = %0.3f; target = %0.3f; total = %0.3f "+
+				"Desired StablePodCount = %0.0f, PanicPodCount = %0.0f, ReadyEndpointCount = %d, MaxScaleUp = %0.0f, MaxScaleDown = %0.0f "+
+				"Actual Metric Percent = %0.0f",
+				metricName, observedStableValue, observedPanicValue, spec.TargetValue, spec.TotalValue,
+				dspc, dppc, originalReadyPodsCount, maxScaleUp, maxScaleDown,
+				actualMetricPercent))
 	}
 
 	// We want to keep desired pod count in the  [maxScaleDown, maxScaleUp] range.
@@ -308,6 +314,7 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 	}
 
 	return ScaleResult{
+		ActualMetricPercent: int32(actualMetricPercent),
 		DesiredPodCount:     desiredPodCount,
 		ExcessBurstCapacity: int32(excessBCF),
 		ScaleValid:          true,
